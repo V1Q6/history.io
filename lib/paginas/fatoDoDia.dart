@@ -11,7 +11,8 @@ import '../widgets/botoes.dart';
 import '../widgets/meutexto.dart';
 
 class FatoDoDia extends StatefulWidget {
-  const FatoDoDia({super.key});
+
+  FatoDoDia({super.key});
 
   @override
   State<FatoDoDia> createState() => _FatoDoDiaState();

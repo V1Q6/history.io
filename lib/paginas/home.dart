@@ -5,12 +5,20 @@ import 'package:aula/widgets/botoes.dart';
 import 'package:aula/widgets/meutexto.dart';
 import 'package:flutter/material.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  Color tema = Colors.white;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: tema,
         appBar: AppBar(
           backgroundColor: Colors.blue,
           title: MeuTexto(
