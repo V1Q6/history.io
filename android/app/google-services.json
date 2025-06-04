@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389243523199",
+    "project_id": "historyio-ee042",
+    "storage_bucket": "historyio-ee042.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389243523199:android:c69eb205bb4c8dc8482f4a",
+        "android_client_info": {
+          "package_name": "com.example.aula"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5lowXMHFvR9xnPb4iYxoowVUZTH4B6Mo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
