@@ -77,7 +77,7 @@ class _IlimitadoState extends State<Ilimitado> {
         appBar: AppBar(
           backgroundColor: Colors.blue,
           title: MeuTexto(
-            texto: "History.io",
+            texto: "Ilimitado",
             cor: Colors.white,
             tamanhoFonte: 20,
           ),

@@ -76,13 +76,13 @@ class _FatoDoDiaState extends State<FatoDoDia> {
         appBar: AppBar(
           backgroundColor: Colors.blue,
           title: MeuTexto(
-            texto: "History.io",
+            texto: "Fato do dia",
             cor: Colors.white,
             tamanhoFonte: 20,
           ),
         ),
         body: Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+          padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
           alignment: Alignment.center,
           child: Column(
             children: [
@@ -91,7 +91,7 @@ class _FatoDoDiaState extends State<FatoDoDia> {
               ),
               Container(
                 alignment: Alignment.center,
-                height: 150,
+                height: 175,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black),
                   borderRadius: BorderRadius.circular(10),
@@ -120,7 +120,7 @@ class _FatoDoDiaState extends State<FatoDoDia> {
               ),
               SizedBox(height: 10),
               Container(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.purple,
