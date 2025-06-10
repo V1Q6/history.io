@@ -1,4 +1,5 @@
-import 'package:aula/paginas/estatisticas.dart';
+import 'package:aula/helper.dart';
+import 'package:aula/paginas/perfil.dart';
 import 'package:aula/widgets/botoes.dart';
 import 'package:flutter/material.dart';
 
@@ -12,8 +13,6 @@ class Configuracoes extends StatefulWidget {
 }
 
 class _ConfiguracoesState extends State<Configuracoes> {
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,14 +47,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 ],
               ),
             ),
-            Botoes("Estatisticas", onPressed: (){_toPage(context, Estatisticas());})
           ],
         ),
       ),
     );
-  }
-
-  _toPage(context, page){
-    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){return page;}));
   }
 }

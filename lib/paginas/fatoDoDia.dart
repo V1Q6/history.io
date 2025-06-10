@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:aula/classes/pergunta.dart';
 import 'package:aula/firebase_options.dart';
-import 'package:aula/widgets/caixaDialogoErro.dart';
+import 'package:aula/widgets/caixaDialogo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,47 +22,6 @@ class _FatoDoDiaState extends State<FatoDoDia> {
   int vidas = 3;
   Pergunta pergunta = Pergunta();
   late QuerySnapshot result;
-
-  Future<void> obterPergunta() async {
-    var banco = FirebaseFirestore.instance.collection("pergunta");
-    AggregateQuerySnapshot query = await FirebaseFirestore.instance.collection('pergunta').count().get();
-    int qtd = query.count!;
-    var random = Random().nextInt(qtd);
-
-    var consulta = await banco
-      .where("id", isEqualTo: random);
-    result = await consulta.get();
-
-    setState(() {
-      pergunta = Pergunta.fromSnapshot(result.docs[0]);
-
-      pergunta.respostas.shuffle();
-    });
-  }
-
-  void responder(resposta){
-    if(resposta == pergunta.respostaCorreta){
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Correto", "Você acertou!")
-      );
-    }else{
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Errado", "Você errou.")
-      );
-      setState(() {
-        vidas--;
-      });
-    }
-
-    if(vidas == 0){
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Você perdeu", "Acabou a quantidade de vidas.")
-      );
-    }
-  }
 
   @override
   void initState() {
@@ -146,5 +105,46 @@ class _FatoDoDiaState extends State<FatoDoDia> {
           ),
         )
     );
+  }
+
+  Future<void> obterPergunta() async {
+    var banco = FirebaseFirestore.instance.collection("pergunta");
+    AggregateQuerySnapshot query = await FirebaseFirestore.instance.collection('pergunta').count().get();
+    int qtd = query.count!;
+    var random = Random().nextInt(qtd);
+
+    var consulta = await banco
+        .where("id", isEqualTo: random);
+    result = await consulta.get();
+
+    setState(() {
+      pergunta = Pergunta.fromSnapshot(result.docs[0]);
+
+      pergunta.respostas.shuffle();
+    });
+  }
+
+  void responder(resposta){
+    if(resposta == pergunta.respostaCorreta){
+      showDialog(
+          context: context,
+          builder: (BuildContext) => CaixaDialogo("Correto", "Você acertou!")
+      );
+    }else{
+      showDialog(
+          context: context,
+          builder: (BuildContext) => CaixaDialogo("Errado", "Você errou.")
+      );
+      setState(() {
+        vidas--;
+      });
+    }
+
+    if(vidas == 0){
+      showDialog(
+          context: context,
+          builder: (BuildContext) => CaixaDialogo("Você perdeu", "Acabou a quantidade de vidas.")
+      );
+    }
   }
 }

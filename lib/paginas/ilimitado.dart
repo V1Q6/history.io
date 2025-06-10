@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../classes/pergunta.dart';
 import '../widgets/botoes.dart';
-import '../widgets/caixaDialogoErro.dart';
+import '../widgets/caixaDialogo.dart';
 import '../widgets/meutexto.dart';
 
 class Ilimitado extends StatefulWidget {

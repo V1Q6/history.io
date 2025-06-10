@@ -1,3 +1,4 @@
+import 'package:aula/helper.dart';
 import 'package:aula/paginas/configuracoes.dart';
 import 'package:aula/paginas/fatoDoDia.dart';
 import 'package:aula/paginas/ilimitado.dart';
@@ -27,7 +28,7 @@ class _HomeState extends State<Home> {
             tamanhoFonte: 20,
           ),
           actions: [
-            IconButton(onPressed: (){_toPage(context, Configuracoes());}, icon: Icon(Icons.settings))
+            IconButton(onPressed: (){abrirPagina(context, Configuracoes());}, icon: Icon(Icons.settings))
           ],
         ),
         body: Align(
@@ -55,22 +56,18 @@ class _HomeState extends State<Home> {
               ButtonTheme(
                 height: 100,
                 minWidth: 200,
-                child: Botoes("FATO DO DIA", onPressed: (){_toPage(context, FatoDoDia());}),
+                child: Botoes("FATO DO DIA", onPressed: (){abrirPagina(context, FatoDoDia());}),
               ),
 
               SizedBox(height: 20),
               ButtonTheme(
                 height: 100,
                 minWidth: 200,
-                child: Botoes("ILIMITADO", onPressed: (){_toPage(context, Ilimitado());}),
+                child: Botoes("ILIMITADO", onPressed: (){abrirPagina(context, Ilimitado());}),
               ),
             ],
           ),
         )
     );
-  }
-
-  _toPage(context, page){
-    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){return page;}));
   }
 }

@@ -24,5 +24,4 @@ class InputTextos extends StatelessWidget {
 
   }
 
-
 }

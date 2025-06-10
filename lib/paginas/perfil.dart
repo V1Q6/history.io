@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../widgets/meutexto.dart';
 
-class Estatisticas extends StatefulWidget {
-  const Estatisticas({super.key});
+class Perfil extends StatefulWidget {
+  const Perfil({super.key});
 
   @override
-  State<Estatisticas> createState() => _EstatisticasState();
+  State<Perfil> createState() => _PerfilState();
 }
 
-class _EstatisticasState extends State<Estatisticas> {
+class _PerfilState extends State<Perfil> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: MeuTexto(
-          texto: "Estatisticas",
+          texto: "Perfil",
           cor: Colors.white,
           tamanhoFonte: 20,
         ),
