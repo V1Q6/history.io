@@ -1,10 +1,7 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../classes/pergunta.dart';
-import '../widgets/botoes.dart';
 import '../widgets/caixaDialogo.dart';
 import '../widgets/meutexto.dart';
 
@@ -20,50 +17,6 @@ class _IlimitadoState extends State<Ilimitado> {
   int qtdAcertos = 0;
   int qtdPergunta = 0;
   Pergunta pergunta = Pergunta();
-  late QuerySnapshot result;
-
-  Future<void> obterPergunta() async {
-    var banco = FirebaseFirestore.instance.collection("pergunta");
-    AggregateQuerySnapshot query = await FirebaseFirestore.instance.collection('pergunta').count().get();
-    int qtd = query.count!;
-    var random = Random().nextInt(qtd);
-
-    var consulta = await banco
-        .where("id", isEqualTo: random);
-    result = await consulta.get();
-
-    setState(() {
-      pergunta = Pergunta.fromSnapshot(result.docs[0]);
-      pergunta.respostas.shuffle();
-      qtdPergunta++;
-    });
-  }
-
-  void responder(resposta){
-    if(resposta == pergunta.respostaCorreta){
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Correto", "Você acertou!")
-      );
-      obterPergunta();
-      qtdAcertos++;
-    }else{
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Errado", "Você errou.")
-      );
-      setState(() {
-        vidas--;
-      });
-    }
-
-    if(vidas == 0){
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Acabou o jogo", "Você acertou $qtdAcertos perguntas!")
-      );
-    }
-  }
 
   @override
   void initState() {
@@ -71,80 +24,177 @@ class _IlimitadoState extends State<Ilimitado> {
     obterPergunta();
   }
 
+  Future<void> obterPergunta() async {
+    var banco = FirebaseFirestore.instance.collection("pergunta");
+    var query = await banco.count().get();
+    int qtd = query.count!;
+    var rnd = Random().nextInt(qtd);
+    var docs = await banco.where("id", isEqualTo: rnd).get();
+
+    setState(() {
+      pergunta = Pergunta.fromSnapshot(docs.docs.first);
+      pergunta.respostas.shuffle();
+      qtdPergunta++;
+    });
+  }
+
+  void responder(String resposta) {
+    bool correto = resposta == pergunta.respostaCorreta;
+
+    if (correto) {
+      qtdAcertos++;
+      showDialog(
+        context: context,
+        builder: (_) => CaixaDialogo("Correto", "Você acertou!"),
+      );
+      obterPergunta();
+    } else {
+      setState(() => vidas--);
+      showDialog(
+        context: context,
+        builder: (_) => CaixaDialogo("Errado", "Você errou."),
+      );
+    }
+
+    if (vidas == 0) {
+      showDialog(
+        context: context,
+        builder: (_) =>
+            CaixaDialogo("Fim de jogo", "Você acertou $qtdAcertos perguntas!"),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDead = vidas == 0;
+    final larguraTela = MediaQuery.of(context).size.width;
+
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue,
-          title: MeuTexto(
-            texto: "Ilimitado",
-            cor: Colors.white,
-            tamanhoFonte: 20,
-          ),
+      backgroundColor: Color(0xFFF2F2F2),
+      appBar: AppBar(
+        title: Text(
+          "Ilimitado",
+          style: TextStyle(color: Colors.white),
         ),
-        body: Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
-          alignment: Alignment.center,
+        backgroundColor: Colors.lightBlue.shade700,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      drawer: Drawer(
+        child: SafeArea(
           child: Column(
             children: [
-              SizedBox(
-                  height: 50
+              ListTile(
+                leading: Icon(Icons.home),
+                title: Text("Início"),
+                onTap: () => Navigator.popUntil(context, ModalRoute.withName('/')),
               ),
-              Container(
-                alignment: Alignment.center,
-                height: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    MeuTexto(
-                      texto: "Pergunta $qtdPergunta:",
-                      tamanhoFonte: 20,
-                    ),
-                    SizedBox(height: 20),
-                    MeuTexto(
-                      texto: pergunta.pergunta,
-                      tamanhoFonte: 16,
-                    ),
-                  ],
-                ),
+              ListTile(
+                leading: Icon(Icons.calendar_today),
+                title: Text("Fato do Dia"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/fatoDoDia');
+                },
               ),
-              SizedBox(height:10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: MeuTexto(
-                  texto: "Vidas: $vidas",
-                  tamanhoFonte: 20,
-                ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Botoes(pergunta.respostas[0], onPressed: vidas > 0 ? (){responder(pergunta.respostas[0]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[1], onPressed: vidas > 0 ? (){responder(pergunta.respostas[1]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[2], onPressed: vidas > 0 ? (){responder(pergunta.respostas[2]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[3], onPressed: vidas > 0 ? (){responder(pergunta.respostas[3]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[4], onPressed: vidas > 0 ? (){responder(pergunta.respostas[4]);} : null),
-                  ],
-                ),
+              Divider(),
+              ListTile(
+                leading: Icon(Icons.brightness_6),
+                title: Text("Modo Escuro"),
+                onTap: () {},
               ),
             ],
           ),
-        )
+        ),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            width: larguraTela < 500 ? double.infinity : 500,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                )
+              ],
+            ),
+            padding: EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Cabeçalho da pergunta
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Pergunta $qtdPergunta",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade800,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      pergunta.pergunta,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 24),
+
+                // Vidas
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    vidas,
+                        (i) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Text("❤️", style: TextStyle(fontSize: 24)),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24),
+
+                // Respostas
+                Column(
+                  children: pergunta.respostas.map((resposta) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor:
+                            isDead ? Colors.grey : Colors.lightBlue.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: isDead ? null : () => responder(resposta),
+                          child: Text(
+                            resposta,
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
