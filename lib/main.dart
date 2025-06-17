@@ -1,7 +1,6 @@
 import 'package:aula/paginas/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'firebase_options.dart';
 
 void main() {
@@ -11,7 +10,12 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  Future<void> inicializarFirebase() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     inicializarFirebase();
@@ -19,15 +23,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: ThemeData.light(), // tema fixo
+      darkTheme: ThemeData.dark(), // pode tirar se quiser
       home: Home(),
-    );
-  }
-
-  Future<void> inicializarFirebase() async {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform
     );
   }
 }

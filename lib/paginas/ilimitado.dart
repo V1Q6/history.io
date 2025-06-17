@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../classes/pergunta.dart';
 import '../widgets/caixaDialogo.dart';
 import '../widgets/meutexto.dart';
+import '../widgets/botoes.dart';
 
 class Ilimitado extends StatefulWidget {
   const Ilimitado({super.key});
@@ -38,30 +39,44 @@ class _IlimitadoState extends State<Ilimitado> {
     });
   }
 
-  void responder(String resposta) {
+  void responder(String resposta) async {
+    if (vidas == 0) return; // evita responder após acabar o jogo
+
     bool correto = resposta == pergunta.respostaCorreta;
 
     if (correto) {
       qtdAcertos++;
-      showDialog(
+      await showDialog(
         context: context,
-        builder: (_) => CaixaDialogo("Correto", "Você acertou!"),
+        builder: (_) => CaixaDialogo(
+          "Correto",
+          "Você acertou!\n\n🔥 Você está com uma sequência de $qtdAcertos acertos!",
+        ),
       );
-      obterPergunta();
+      await obterPergunta();
     } else {
       setState(() => vidas--);
-      showDialog(
+      await showDialog(
         context: context,
         builder: (_) => CaixaDialogo("Errado", "Você errou."),
       );
-    }
 
-    if (vidas == 0) {
-      showDialog(
-        context: context,
-        builder: (_) =>
-            CaixaDialogo("Fim de jogo", "Você acertou $qtdAcertos perguntas!"),
-      );
+      if (vidas == 0) {
+        await showDialog(
+          context: context,
+          builder: (_) => CaixaDialogo(
+            "Fim de jogo",
+            "Não foi desta vez 🤷‍♂️🤷‍♂️\n\nVocê acertou $qtdAcertos perguntas!",
+          ),
+        );
+        // Reiniciar o jogo após fechar o diálogo de fim de jogo
+        setState(() {
+          vidas = 5;
+          qtdAcertos = 0;
+          qtdPergunta = 0;
+        });
+        await obterPergunta();
+      }
     }
   }
 
@@ -71,41 +86,17 @@ class _IlimitadoState extends State<Ilimitado> {
     final larguraTela = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Color(0xFFF2F2F2),
+      backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
-        title: Text(
-          "Ilimitado",
-          style: TextStyle(color: Colors.white),
+        title: MeuTexto(
+          texto: "Ilimitado",
+          cor: Colors.white,
+          tamanhoFonte: 20,
+          negrito: FontWeight.bold,
         ),
-        backgroundColor: Colors.lightBlue.shade700,
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.home),
-                title: Text("Início"),
-                onTap: () => Navigator.popUntil(context, ModalRoute.withName('/')),
-              ),
-              ListTile(
-                leading: Icon(Icons.calendar_today),
-                title: Text("Fato do Dia"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/fatoDoDia');
-                },
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.brightness_6),
-                title: Text("Modo Escuro"),
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
+        backgroundColor: Colors.lightBlue,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: true,
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -115,7 +106,7 @@ class _IlimitadoState extends State<Ilimitado> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 8,
@@ -123,68 +114,46 @@ class _IlimitadoState extends State<Ilimitado> {
                 )
               ],
             ),
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabeçalho da pergunta
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Pergunta $qtdPergunta",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade800,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      pergunta.pergunta,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
+                MeuTexto(
+                  texto: "Pergunta $qtdPergunta",
+                  tamanhoFonte: 20,
+                  cor: Colors.blue,
+                  negrito: FontWeight.bold,
                 ),
-                SizedBox(height: 24),
-
-                // Vidas
+                const SizedBox(height: 12),
+                MeuTexto(
+                  texto: pergunta.pergunta,
+                  tamanhoFonte: 16,
+                  cor: Colors.black87,
+                ),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     vidas,
-                        (i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                        (i) => const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 2),
                       child: Text("❤️", style: TextStyle(fontSize: 24)),
                     ),
                   ),
                 ),
-                SizedBox(height: 24),
-
-                // Respostas
+                const SizedBox(height: 24),
                 Column(
                   children: pergunta.respostas.map((resposta) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor:
-                            isDead ? Colors.grey : Colors.lightBlue.shade600,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                        child: Botoes(
+                          resposta,
+                          corFundo: isDead
+                              ? Colors.grey
+                              : Colors.lightBlue.shade600,
                           onPressed: isDead ? null : () => responder(resposta),
-                          child: Text(
-                            resposta,
-                            style: TextStyle(fontSize: 16),
-                          ),
                         ),
                       ),
                     );

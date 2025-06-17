@@ -11,8 +11,9 @@ class CaixaDialogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: MeuTexto(texto: titulo, cor:  Colors.black, tamanhoFonte:  20),
-      content: MeuTexto(texto: descricao, cor:  Colors.black, tamanhoFonte: 12),
+      backgroundColor: Colors.grey[100],  // cor clara para o fundo da caixa
+      title: MeuTexto(texto: titulo, cor: Colors.black, tamanhoFonte: 20),
+      content: MeuTexto(texto: descricao, cor: Colors.black, tamanhoFonte: 12),
       actions: [
         Botoes("Ok", onPressed: () => Navigator.pop(context))
       ],

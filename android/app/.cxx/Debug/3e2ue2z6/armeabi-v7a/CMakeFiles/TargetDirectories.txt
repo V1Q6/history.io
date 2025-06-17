@@ -1,0 +1,2 @@
+C:/Users/games/StudioProjects/history.io/android/app/.cxx/Debug/3e2ue2z6/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/games/StudioProjects/history.io/android/app/.cxx/Debug/3e2ue2z6/armeabi-v7a/CMakeFiles/rebuild_cache.dir

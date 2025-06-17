@@ -6,10 +6,11 @@ class Usuario {
   int fatosDoDiaSeguido = 0;
   int recordeIlimitado = 0;
 
-  Usuario.fromSnapshot(DocumentSnapshot snapshot){
-    nome = snapshot['nome'];
-    tema = snapshot['tema'];
-    fatosDoDiaSeguido = snapshot['estatiscas[\'fatosDoDiaSeguido\']'];
-    recordeIlimitado = snapshot['estatiscas[\'recordeIlimitado\']'];
+  Usuario.fromSnapshot(DocumentSnapshot snapshot) {
+    nome = snapshot['nome'] ?? "";
+    tema = snapshot['tema'] ?? true;
+    var estatisticas = snapshot['estatisticas'] ?? {};
+    fatosDoDiaSeguido = estatisticas['fatosDoDiaSeguido'] ?? 0;
+    recordeIlimitado = estatisticas['recordeIlimitado'] ?? 0;
   }
 }

@@ -1,18 +1,15 @@
+import 'dart:convert';
 import 'dart:math';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aula/classes/pergunta.dart';
-import 'package:aula/firebase_options.dart';
 import 'package:aula/widgets/caixaDialogo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import '../widgets/botoes.dart';
 import '../widgets/meutexto.dart';
 
 class FatoDoDia extends StatefulWidget {
-
-  FatoDoDia({super.key});
+  const FatoDoDia({super.key});
 
   @override
   State<FatoDoDia> createState() => _FatoDoDiaState();
@@ -20,131 +17,189 @@ class FatoDoDia extends StatefulWidget {
 
 class _FatoDoDiaState extends State<FatoDoDia> {
   int vidas = 3;
-  Pergunta pergunta = Pergunta();
-  late QuerySnapshot result;
+  Pergunta? pergunta;
+  late SharedPreferences prefs;
+  bool respondeuHoje = false;
 
   @override
   void initState() {
     super.initState();
-    obterPergunta();
+    inicializar();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> inicializar() async {
+    prefs = await SharedPreferences.getInstance();
 
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue,
-          title: MeuTexto(
-            texto: "Fato do dia",
-            cor: Colors.white,
-            tamanhoFonte: 20,
-          ),
-        ),
-        body: Container(
-          padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-          alignment: Alignment.center,
-          child: Column(
-            children: [
-              SizedBox(
-                  height: 50
-              ),
-              Container(
-                alignment: Alignment.center,
-                height: 175,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    MeuTexto(
-                      texto: "Pergunta:",
-                      tamanhoFonte: 20,
-                    ),
-                    SizedBox(height: 20),
-                    MeuTexto(
-                      texto: pergunta.pergunta,
-                      tamanhoFonte: 16,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height:10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: MeuTexto(
-                  texto: "Vidas: $vidas",
-                  tamanhoFonte: 20,
-                ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Botoes(pergunta.respostas[0], onPressed: vidas > 0 ? (){responder(pergunta.respostas[0]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[1], onPressed: vidas > 0 ? (){responder(pergunta.respostas[1]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[2], onPressed: vidas > 0 ? (){responder(pergunta.respostas[2]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[3], onPressed: vidas > 0 ? (){responder(pergunta.respostas[3]);} : null),
-                    SizedBox(height: 20),
-                    Botoes(pergunta.respostas[4], onPressed: vidas > 0 ? (){responder(pergunta.respostas[4]);} : null),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        )
-    );
+    String? dataSalva = prefs.getString('data_pergunta');
+    String dataHoje = DateTime.now().toIso8601String().substring(0, 10);
+
+    if (dataSalva == dataHoje) {
+      respondeuHoje = prefs.getBool('respondido_hoje') ?? false;
+
+      String? perguntaJson = prefs.getString('pergunta_json');
+      if (perguntaJson != null) {
+        setState(() {
+          pergunta = Pergunta.fromJsonString(perguntaJson);
+          pergunta!.respostas.shuffle();
+        });
+      } else {
+        await obterPergunta();
+      }
+    } else {
+      await obterPergunta();
+      await prefs.setBool('respondido_hoje', false);
+    }
+  }
+
+  Future<void> salvarPerguntaDia() async {
+    if (pergunta == null) return;
+
+    String dataHoje = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString('data_pergunta', dataHoje);
+
+    String perguntaJson = pergunta!.toJsonString();
+    await prefs.setString('pergunta_json', perguntaJson);
   }
 
   Future<void> obterPergunta() async {
     var banco = FirebaseFirestore.instance.collection("pergunta");
-    AggregateQuerySnapshot query = await FirebaseFirestore.instance.collection('pergunta').count().get();
+    var query = await banco.count().get();
     int qtd = query.count!;
-    var random = Random().nextInt(qtd);
-
-    var consulta = await banco
-        .where("id", isEqualTo: random);
-    result = await consulta.get();
+    var rnd = Random().nextInt(qtd);
+    var docs = await banco.where("id", isEqualTo: rnd).get();
 
     setState(() {
-      pergunta = Pergunta.fromSnapshot(result.docs[0]);
-
-      pergunta.respostas.shuffle();
+      pergunta = Pergunta.fromSnapshot(docs.docs.first);
+      pergunta!.respostas.shuffle();
+      vidas = 3;
+      respondeuHoje = false;
     });
+
+    await salvarPerguntaDia();
   }
 
-  void responder(resposta){
-    if(resposta == pergunta.respostaCorreta){
+  void responder(String resposta) {
+    if (pergunta == null || respondeuHoje || vidas == 0) return;
+
+    bool correto = resposta == pergunta!.respostaCorreta;
+
+    if (correto) {
       showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Correto", "Você acertou!")
-      );
-    }else{
-      showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Errado", "Você errou.")
+        context: context,
+        builder: (_) => CaixaDialogo("Correto", "Você acertou!"),
       );
       setState(() {
-        vidas--;
+        respondeuHoje = true;
       });
-    }
-
-    if(vidas == 0){
+      prefs.setBool('respondido_hoje', true);
+    } else {
+      setState(() => vidas--);
       showDialog(
-          context: context,
-          builder: (BuildContext) => CaixaDialogo("Você perdeu", "Acabou a quantidade de vidas.")
+        context: context,
+        builder: (_) => CaixaDialogo("Errado", "Você errou."),
       );
     }
+
+    if (vidas == 0) {
+      showDialog(
+        context: context,
+        builder: (_) =>
+            CaixaDialogo("Fim de jogo", "Você perdeu todas as vidas."),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final larguraTela = MediaQuery.of(context).size.width;
+    final isDead = vidas == 0 || respondeuHoje;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F2F2),
+      appBar: AppBar(
+        title: MeuTexto(
+          texto: "Fato do Dia",
+          cor: Colors.white,
+          tamanhoFonte: 20,
+          negrito: FontWeight.bold,
+        ),
+        backgroundColor: Colors.lightBlue,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: true, // ✅ Garante botão de voltar
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            width: larguraTela < 500 ? double.infinity : 500,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(24),
+            child: pergunta == null
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MeuTexto(
+                  texto: "Pergunta",
+                  tamanhoFonte: 20,
+                  negrito: FontWeight.bold,
+                  cor: Colors.blue.shade800,
+                ),
+                const SizedBox(height: 12),
+                MeuTexto(
+                  texto: pergunta!.pergunta,
+                  tamanhoFonte: 16,
+                  cor: Colors.black87,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    vidas,
+                        (index) => const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        "❤️",
+                        style: TextStyle(fontSize: 28),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Column(
+                  children: pergunta!.respostas.map((resposta) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Botoes(
+                          resposta,
+                          corFundo: isDead
+                              ? Colors.grey
+                              : Colors.lightBlue.shade600,
+                          onPressed: isDead
+                              ? null
+                              : () => responder(resposta),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
